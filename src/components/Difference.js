@@ -35,7 +35,7 @@ const Difference = () => {
       className="difference-section"
     >
       <motion.h2 variants={item}>
-        How is <span>Dataful</span> different from other data portals ?
+        How is <span>Dataful</span> different from other data portals?
       </motion.h2>
       <div className="differences-container">
         <motion.div variants={item} className="difference">
