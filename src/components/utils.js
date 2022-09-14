@@ -1,53 +1,103 @@
 export default function initStompBits() {
-  function getRandomNumberInRange(a, b) {
-    return a + Math.random() * (b - a);
-  }
-  function getMiddleNumber(a, b, c) {
-    return Math.min(Math.max(a, Math.min(b, c)), Math.max(b, c));
-  }
-  function k(a, b, d) {
-    this.radius = getRandomNumberInRange(0.1, 3);
-    this.angleturn = getRandomNumberInRange(-0.08, 0.08);
-    this.angle = getRandomNumberInRange(1, 0);
-    this.type2 = Math.floor(0 + 4 * Math.random());
-    this.x = a;
-    this.y = b;
-    this.vx = getRandomNumberInRange(-4, 4);
-    this.vy = getRandomNumberInRange(-2, 0);
-    this.type = d;
-  }
-  function l(a, b, c, d, e, f) {
-    this.x = a;
-    this.y = b;
-    this.w = c;
-    this.h = d;
-    this.number = e;
-    this.particles = [];
-    this.text = f;
-  }
-  function m() {
-    b.clearRect(0, 0, e, f);
-    n.animate();
-    requestAnimationFrame(m);
-  }
-  var d = document.getElementById("bits"),
-    h = document.getElementById("ambient-bg"),
-    b = d.getContext("2d"),
-    e = (d.width = h.offsetWidth),
-    f = (d.height = h.offsetHeight),
-    p = 13; // isMobile.phone ? 10 : 13;
+  var canvas = document.getElementById("bits");
+  var ambContainer = document.getElementById("ambient-bg");
+  var context = canvas.getContext("2d");
+  var W = (canvas.width = ambContainer.offsetWidth);
+  var H = (canvas.height = ambContainer.offsetHeight);
+  // if (isMobile.phone) {
+  //   var numBits = 10;
+  // } else {
+  //   var numBits = 13;
+  // }
+  var numBits = 13;
+
   window.addEventListener(
     "resize",
     function () {
-      e = d.width = h.offsetWidth;
-      f = d.height = h.offsetHeight;
-      n.updateVal();
+      W = canvas.width = ambContainer.offsetWidth;
+      H = canvas.height = ambContainer.offsetHeight;
+      generator1.updateVal();
     },
-    !0
+    true
   );
-  var n = new l(0, f + 2, e, 0, p);
-  d.addEventListener("mousemove", function (a) {}, !1);
-  k.prototype.update = function () {
+  var generatorStock = [];
+  var generator1 = new particleGenerator(0, H + 2, W, 0, numBits);
+
+  function drawTriangle(
+    context,
+    x,
+    y,
+    triangleWidth,
+    triangleHeight,
+    fillStyle
+  ) {
+    context.save();
+    context.translate(0, -triangleHeight / 2);
+    context.beginPath();
+    context.moveTo(x, y);
+    context.lineTo(x + triangleWidth / 2, y + triangleHeight);
+    context.lineTo(x - triangleWidth / 2, y + triangleHeight);
+    context.restore();
+    context.closePath();
+    context.strokeStyle = fillStyle;
+    context.stroke();
+  }
+
+  function drawCircle(context, x, y, radius, fillStyle) {
+    context.beginPath();
+    context.arc(x, y, radius, 0, 2 * Math.PI);
+    context.closePath();
+    context.strokeStyle = fillStyle;
+    context.stroke();
+  }
+
+  function drawCross(context, fillStyle) {
+    context.beginPath();
+    context.moveTo(0, 0);
+    context.lineTo(0, 10);
+    context.moveTo(-6, 5);
+    context.lineTo(6, 5);
+    context.closePath();
+    context.strokeStyle = fillStyle;
+    context.stroke();
+  }
+  var mouse = {
+    x: 0,
+    y: 0,
+  };
+  canvas.addEventListener(
+    "mousemove",
+    function (e) {
+      mouse.x = e.pageX - this.offsetLeft;
+      mouse.y = e.pageY - this.offsetTop;
+    },
+    false
+  );
+
+  function randomIntgf(min, max) {
+    return Math.floor(min + Math.random() * (max - min + 1));
+  }
+
+  function randomInt(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, Math.min(min, max)), Math.max(min, max));
+  }
+
+  function particle(x, y, type) {
+    this.radius = randomInt(0.1, 3);
+    this.angleturn = randomInt(-0.08, 0.08);
+    this.angle = randomInt(1, 0);
+    this.type2 = randomIntgf(0, 3);
+    this.x = x;
+    this.y = y;
+    this.vx = randomInt(-4, 4);
+    this.vy = randomInt(-2, 0);
+    this.type = type;
+  }
+  particle.prototype.update = function () {
     this.x += this.vx;
     this.y += this.vy;
     this.vy += -0.08;
@@ -55,105 +105,86 @@ export default function initStompBits() {
     this.vy *= 0.99;
     this.angle += this.angleturn;
     this.radius -= 0.01;
-    b.beginPath();
-    b.font = "30px arial";
-    b.textAlign = "center";
-    b.globalAlpha = this.radius;
-    b.lineWidth = 2;
-    b.lineCap = "round";
-    b.save();
-    b.translate(this.x, this.y);
-    b.rotate(this.angle);
-    if (0 === this.type2) {
-      var a = b;
-      a.save();
-      a.translate(0, -6.5);
-      a.beginPath();
-      a.moveTo(0, 0);
-      a.lineTo(7.5, 13);
-      a.lineTo(-7.5, 13);
-      a.restore();
-      a.closePath();
-      a.strokeStyle = "#FC63B3";
-      a.stroke();
+    context.beginPath();
+    context.font = "30px arial";
+    context.textAlign = "center";
+    context.globalAlpha = this.radius;
+    context.lineWidth = 2;
+    context.lineCap = "round";
+    context.save();
+    context.translate(this.x, this.y);
+    context.rotate(this.angle);
+    if (this.type2 === 0) {
+      drawTriangle(context, 0, 0, 15, 13, "#FC63B3");
+    } else if (this.type2 === 1) {
+      drawCircle(context, 0, 0, 8, "#FFF48D");
+    } else if (this.type2 === 2) {
+      context.beginPath();
+      context.rect(0, 0, 13, 13);
+      context.closePath();
+      context.strokeStyle = "#94FFF5";
+      context.stroke();
+    } else if (this.type2 === 3) {
+      drawCross(context, "#D68FFF");
     }
-    if (1 === this.type2) {
-      a = b;
-      a.beginPath();
-      a.arc(0, 0, 8, 0, 2 * Math.PI);
-      a.closePath();
-      a.strokeStyle = "#FFF48D";
-      a.stroke();
+    context.restore();
+    context.globalAlpha = 1;
+    if (this.y > H + 5) {
+      this.vy *= -0.5;
     }
-    if (2 === this.type2) {
-      b.beginPath();
-      b.rect(0, 0, 13, 13);
-      b.closePath();
-      b.strokeStyle = "#94FFF5";
-      b.stroke();
+    if (this.x > W || this.x < 0) {
+      this.vx *= -1;
     }
-    if (3 === this.type2) {
-      a = b;
-      a.beginPath();
-      a.moveTo(0, 0);
-      a.lineTo(0, 10);
-      a.moveTo(-6, 5);
-      a.lineTo(6, 5);
-      a.closePath();
-      a.strokeStyle = "#D68FFF";
-      a.stroke();
-    }
+  };
 
-    b.restore();
-    b.globalAlpha = 1;
-    this.y > f + 5 && (this.vy *= -0.5);
-    if (this.x > e || 0 > this.x) this.vx *= -1;
+  function particleGenerator(x, y, w, h, number, text) {
+    // particle will spawn in this aera
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.number = number;
+    this.particles = [];
+    this.text = text;
+  }
+  particleGenerator.prototype.updateVal = function () {
+    this.w = W;
+    this.y = H + 2;
   };
-  l.prototype.updateVal = function () {
-    this.w = e;
-    this.y = f + 2;
-  };
-  l.prototype.animate = function () {
-    b.fillStyle = "grey";
-    b.beginPath();
-    b.strokeRect(this.x, this.y, this.w, this.h);
-    b.font = "13px arial";
-    b.textAlign = "center";
-    b.closePath();
-    this.particles.length < this.number &&
+  particleGenerator.prototype.animate = function () {
+    context.fillStyle = "grey";
+    context.beginPath();
+    context.strokeRect(this.x, this.y, this.w, this.h);
+    context.font = "13px arial";
+    context.textAlign = "center";
+    context.closePath();
+    if (this.particles.length < this.number) {
       this.particles.push(
-        new k(
-          getMiddleNumber(
-            getRandomNumberInRange(this.x, this.w + this.x),
-            this.x,
-            this.w + this.x
-          ),
-          getMiddleNumber(
-            getRandomNumberInRange(this.y, this.h + this.y),
-            this.y,
-            this.h + this.y
-          ),
+        new particle(
+          clamp(randomInt(this.x, this.w + this.x), this.x, this.w + this.x),
+          clamp(randomInt(this.y, this.h + this.y), this.y, this.h + this.y),
           this.text
         )
       );
-    for (var a = 0; a < this.particles.length; a++) {
-      var d = this.particles[a];
-      d.update();
-      if (0.01 > d.radius || 0 > d.y)
-        this.particles[a] = new k(
-          getMiddleNumber(
-            getRandomNumberInRange(this.x, this.w + this.x),
-            this.x,
-            this.w + this.x
-          ),
-          getMiddleNumber(
-            getRandomNumberInRange(this.y, this.h + this.y),
-            this.y,
-            this.h + this.y
-          ),
+    }
+    for (var i = 0; i < this.particles.length; i++) {
+      var p = this.particles[i];
+      p.update();
+      if (p.radius < 0.01 || p.y < 0) {
+        //a brand new particle replacing the dead one
+        this.particles[i] = new particle(
+          clamp(randomInt(this.x, this.w + this.x), this.x, this.w + this.x),
+          clamp(randomInt(this.y, this.h + this.y), this.y, this.h + this.y),
           this.text
         );
+      }
     }
   };
-  m();
+  update();
+
+  function update() {
+    context.clearRect(0, 0, W, H);
+    generator1.animate();
+    requestAnimationFrame(update);
+  }
 }
